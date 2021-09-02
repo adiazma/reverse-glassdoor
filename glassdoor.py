@@ -2,7 +2,6 @@ from requests import Session, Response, Request
 from urllib.parse import urlencode, quote
 from bs4 import BeautifulSoup
 import json, os, requests, mysql.connector, math
-import base64
 
 BASE_URL = 'www.glassdoor.ca'
 
@@ -15,13 +14,13 @@ USER = 'admin'
 PASSWORD = 'admin'
 
 headers = {
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept': '*/*',
+    'Accept-Encoding': 'gzip, deflate, utf-8',
     'Accept-Language': 'es-419,es;q=0.9',
-    'Sec-Fetch-User': '?1',
-    'Sec-Fetch-Dest': 'document',
-    'Sec-Fetch-Mode': 'navigate',
-    'Sec-Fetch-Site': 'none',
+    'Sec-Fetch-User': '?0',
+    'Sec-Fetch-Dest': 'empty',
+    'Sec-Fetch-Mode': 'cors',
+    'Sec-Fetch-Site': 'same-origin',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36',
     'upgrade-insecure-requests': '1',
     'Referer': f'https://{BASE_URL}/',
@@ -57,14 +56,12 @@ def EmployeeListing(_session, employee='python'):
     request = Request('GET', url=url, headers=headers)
     req = _session.prepare_request(request)
     response = _session.send(req)
-
-    print(response.headers)
-    print(response.cookies.get_dict())
+    page = json.loads(response.text.split('$.extend(GD.page, ')[1].split(');')[0])
 
     url = f'https://{BASE_URL}/graph'
     request = Request('POST', url=url, data=str.encode(json.dumps({
         'operationName': 'JobSearchQuery',
-        'query': 'query JobSearchQuery($searchParams: SearchParams) {\n  jobListings(contextHolder: {searchParams: $searchParams}) {\n    adOrderJobLinkImpressionTracking\n    totalJobsCount\n    filterOptions\n    companiesLink\n    dataset1\n    indexablePageForSeo\n    searchQueryGuid\n    indeedCtk\n    paginationCursors {\n      pageNumber\n      cursor\n      __typename\n    }\n    companyFilterOptions {\n      id\n      shortName\n      __typename\n    }\n    serpSeoLinksVO {\n      relatedJobTitlesResults\n      topCityIdsToNameResults {\n        key\n        value\n        __typename\n      }\n      topEmployerIdsToNameResults {\n        key\n        value\n        __typename\n      }\n      searchedJobTitle\n      searchedKeyword\n      searchedLocationIdAsString\n      searchedLocationType\n      searchedLocationSeoName\n      topEmployerNameResults\n      __typename\n    }\n    jobsPageSeoData {\n      pageTitle\n      pageHeader\n      pageFooterText\n      pageMetaDescription\n      __typename\n    }\n    pageImpressionGuid\n    pageSlotId\n    relatedCompaniesLRP\n    relatedCompaniesZRP\n    relatedJobTitles\n    resourceLink\n    seoTableEnabled\n    jobListingSeoLinks {\n      linkItems {\n        position\n        url\n        __typename\n      }\n      __typename\n    }\n    jobListings {\n      jobview {\n        job {\n          descriptionFragments\n          eolHashCode\n          jobReqId\n          jobSource\n          jobTitleId\n          jobTitleText\n          listingId\n          __typename\n        }\n        jobListingAdminDetails {\n          adOrderId\n          cpcVal\n          importConfigId\n          jobListingId\n          jobSourceId\n          userEligibleForAdminJobDetails\n          __typename\n        }\n        overview {\n          id\n          name\n          shortName\n          squareLogoUrl\n          __typename\n        }\n        gaTrackerData {\n          trackingUrl\n          jobViewDisplayTimeMillis\n          requiresTracking\n          isIndeedJob\n          searchTypeCode\n          pageRequestGuid\n          isSponsoredFromJobListingHit\n          isSponsoredFromIndeed\n          __typename\n        }\n        header {\n          adOrderId\n          advertiserType\n          ageInDays\n          applyUrl\n          easyApply\n          easyApplyMethod\n          employerNameFromSearch\n          jobLink\n          jobCountryId\n          jobResultTrackingKey\n          locId\n          locationName\n          locationType\n          needsCommission\n          normalizedJobTitle\n          organic\n          payPercentile90\n          payPercentile50\n          payPercentile10\n          hourlyWagePayPercentile {\n            payPercentile90\n            payPercentile50\n            payPercentile10\n            __typename\n          }\n          rating\n          salarySource\n          sponsored\n          payPeriod\n          payCurrency\n          savedJobId\n          sgocId\n          categoryMgocId\n          urgencySignal {\n            labelKey\n            messageKey\n            normalizedCount\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n',
+        'query': open('employees.graphql', 'rb').read().decode('ascii'),
         'variables': {
             'searchParams': {
                 'keyword': employee,
@@ -76,27 +73,26 @@ def EmployeeListing(_session, employee='python'):
                 'searchType': 'SR',
                 'seoUrl': False,
                 'filterParams': [
-                    {
-                        'filterKey': 'applicationType',
-                        'values': '1',
-                    }, {
-                        'filterKey': 'sc.keyword',
-                        'values': employee,
-                    }, {
-                        'filterKey': 'locT',
-                        'values': 'N',
-                    }, {
-                        'filterKey': 'locId',
-                        'values': '3',
-                    },
+                    {'filterKey': 'applicationType', 'values': '1'},
+                    {'filterKey': 'sc.keyword', 'values': employee},
+                    {'filterKey': 'locT', 'values': 'N'},
+                    {'filterKey': 'locId', 'values': '3'},
                 ]
             }
         }
-    })), headers=headers)
+    })), headers={
+        **headers,
+        'gd-csrf-token': page['gdToken'],
+        'Content-Type': 'application/json',
+        'apollographql-client-name': 'job-search',
+        'apollographql-client-version': '0.11.35-patch.0',
+    })
     req = _session.prepare_request(request)
     response = _session.send(req)
 
-    print(response.text)
+    
+
+    return json.loads(response.content)
 
 # SQL
 def DiccionarioSQL(Select):

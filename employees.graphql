@@ -1,0 +1,150 @@
+query JobSearchQuery($searchParams: SearchParams) {
+  jobListings(contextHolder: { searchParams: $searchParams }) {
+    adOrderJobLinkImpressionTracking
+    totalJobsCount
+    filterOptions
+    companiesLink
+    dataset1
+    indexablePageForSeo
+    searchQueryGuid
+    indeedCtk
+    paginationCursors {
+      pageNumber
+      cursor
+      __typename
+    }
+    companyFilterOptions {
+      id
+      shortName
+      __typename
+    }
+    serpSeoLinksVO {
+      relatedJobTitlesResults
+      topCityIdsToNameResults {
+        key
+        value
+        __typename
+      }
+      topEmployerIdsToNameResults {
+        key
+        value
+        __typename
+      }
+      searchedJobTitle
+      searchedKeyword
+      searchedLocationIdAsString
+      searchedLocationType
+      searchedLocationSeoName
+      topEmployerNameResults
+      __typename
+    }
+    jobsPageSeoData {
+      pageTitle
+      pageHeader
+      pageFooterText
+      pageMetaDescription
+      __typename
+    }
+    pageImpressionGuid
+    pageSlotId
+    relatedCompaniesLRP
+    relatedCompaniesZRP
+    relatedJobTitles
+    resourceLink
+    seoTableEnabled
+    jobListingSeoLinks {
+      linkItems {
+        position
+        url
+        __typename
+      }
+      __typename
+    }
+    jobListings {
+      jobview {
+        job {
+          descriptionFragments
+          eolHashCode
+          jobReqId
+          jobSource
+          jobTitleId
+          jobTitleText
+          listingId
+          __typename
+        }
+        jobListingAdminDetails {
+          adOrderId
+          cpcVal
+          importConfigId
+          jobListingId
+          jobSourceId
+          userEligibleForAdminJobDetails
+          __typename
+        }
+        overview {
+          id
+          name
+          shortName
+          squareLogoUrl
+          __typename
+        }
+        gaTrackerData {
+          trackingUrl
+          jobViewDisplayTimeMillis
+          requiresTracking
+          isIndeedJob
+          searchTypeCode
+          pageRequestGuid
+          isSponsoredFromJobListingHit
+          isSponsoredFromIndeed
+          __typename
+        }
+        header {
+          adOrderId
+          advertiserType
+          ageInDays
+          applyUrl
+          easyApply
+          easyApplyMethod
+          employerNameFromSearch
+          jobLink
+          jobCountryId
+          jobResultTrackingKey
+          locId
+          locationName
+          locationType
+          needsCommission
+          normalizedJobTitle
+          organic
+          payPercentile90
+          payPercentile50
+          payPercentile10
+          hourlyWagePayPercentile {
+            payPercentile90
+            payPercentile50
+            payPercentile10
+            __typename
+          }
+          rating
+          salarySource
+          sponsored
+          payPeriod
+          payCurrency
+          savedJobId
+          sgocId
+          categoryMgocId
+          urgencySignal {
+            labelKey
+            messageKey
+            normalizedCount
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+      __typename
+    }
+    __typename
+  }
+}
