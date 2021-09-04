@@ -51,13 +51,34 @@ def get_session_cookies(session, filters=[]):
     return cookies
 
 # Monster
-def EmployeeListing(_session, employee='python'):
+def EmployeeQuestions(_session, key=''):
+    url = 'https://apply.indeed.com/indeedapply/rpc/log?type=iaModalShow&ms=1630793346346&iaUid=1fepdatuiu49b802&uid=1fepdatuiu49b802'
+    request = Request('GET', url=url, headers=headers)
+    req = _session.prepare_request(request)
+    response = _session.send(req)
+
+    print(response.content)
+
+def Auth(_session, creds={}):
     url = f'https://{BASE_URL}/'
     request = Request('GET', url=url, headers=headers)
     req = _session.prepare_request(request)
     response = _session.send(req)
     page = json.loads(response.text.split('$.extend(GD.page, ')[1].split(');')[0])
 
+    url = f'https://{BASE_URL}/profile/ajax/loginAjax.htm'
+    request = Request('POST', url=url, data={
+        'username': creds['username'],
+        'password': creds['password'],
+        'gdToken': page['gdToken'],
+    }, headers=headers)
+    req = _session.prepare_request(request)
+    response = _session.send(req)
+    result = json.loads(response.content)
+    
+    return _session, page
+
+def EmployeeListing(_session, employee='python', page={}):
     url = f'https://{BASE_URL}/graph'
     request = Request('POST', url=url, data=str.encode(json.dumps({
         'operationName': 'JobSearchQuery',
@@ -89,8 +110,6 @@ def EmployeeListing(_session, employee='python'):
     })
     req = _session.prepare_request(request)
     response = _session.send(req)
-
-    
 
     return json.loads(response.content)
 

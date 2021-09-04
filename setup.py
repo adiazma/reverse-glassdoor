@@ -8,14 +8,14 @@ def AuthSession():
     session = Session()
     session.headers = glassdoor.headers
     creds = json.loads(open(f'{os.getcwd()}/creds.json', 'rb').read())
-    #session = glassdoor.Auth(session)
-    return session
+    return glassdoor.Auth(session, creds)
 
-def LoopSession(session):
-    files = glassdoor.EmployeeListing(session)['data']['jobListings']['jobListings']
+def LoopSession(session, page={}):
+    files = glassdoor.EmployeeListing(session, page=page)['data']['jobListings']['jobListings']
     for item in files:
-        print(item['jobview'].keys())
+        key = item['jobview']['header']['jobResultTrackingKey'].split('-')[-1]
+        glassdoor.EmployeeQuestions(session, key)
     
-session = AuthSession()
-LoopSession(session)
+session, page = AuthSession()
+LoopSession(session, page)
     
